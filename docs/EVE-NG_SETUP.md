@@ -33,38 +33,78 @@ EVE-NG Lab: StrongVPN-PostQuantum-Testing
 - **CPU**: 2 cores minimum (4 cores recommended)
 - **Network**: Single interface connected to shared LAN
 
-### Network Configuration
+### Network Configuration (Manual IP Assignment)
 
 #### Client VM (10.1.1.10)
 ```bash
-# /etc/netplan/01-netcfg.yaml
-network:
-  version: 2
-  ethernets:
-    eth0:
-      addresses:
-        - 10.1.1.10/24
-      gateway4: 10.1.1.1
-      nameservers:
-        addresses: [8.8.8.8, 8.8.4.4]
+# Method 1: Using ifconfig (temporary - lost on reboot)
+sudo ifconfig eth0 10.1.1.10 netmask 255.255.255.0
+sudo route add default gw 10.1.1.1
 
-sudo netplan apply
+# Method 2: Using ip command (temporary - lost on reboot)
+sudo ip addr add 10.1.1.10/24 dev eth0
+sudo ip link set eth0 up
+sudo ip route add default via 10.1.1.1
+
+# Method 3: Permanent configuration via /etc/network/interfaces
+sudo nano /etc/network/interfaces
+# Add these lines:
+auto eth0
+iface eth0 inet static
+    address 10.1.1.10
+    netmask 255.255.255.0
+    gateway 10.1.1.1
+    dns-nameservers 8.8.8.8 8.8.4.4
+
+# Apply permanent configuration
+sudo systemctl restart networking
+# OR
+sudo ifdown eth0 && sudo ifup eth0
 ```
 
 #### Server VM (10.1.1.20)
 ```bash
-# /etc/netplan/01-netcfg.yaml
-network:
-  version: 2
-  ethernets:
-    eth0:
-      addresses:
-        - 10.1.1.20/24
-      gateway4: 10.1.1.1
-      nameservers:
-        addresses: [8.8.8.8, 8.8.4.4]
+# Method 1: Using ifconfig (temporary - lost on reboot)
+sudo ifconfig eth0 10.1.1.20 netmask 255.255.255.0
+sudo route add default gw 10.1.1.1
 
-sudo netplan apply
+# Method 2: Using ip command (temporary - lost on reboot)
+sudo ip addr add 10.1.1.20/24 dev eth0
+sudo ip link set eth0 up
+sudo ip route add default via 10.1.1.1
+
+# Method 3: Permanent configuration via /etc/network/interfaces
+sudo nano /etc/network/interfaces
+# Add these lines:
+auto eth0
+iface eth0 inet static
+    address 10.1.1.20
+    netmask 255.255.255.0
+    gateway 10.1.1.1
+    dns-nameservers 8.8.8.8 8.8.4.4
+
+# Apply permanent configuration
+sudo systemctl restart networking
+# OR
+sudo ifdown eth0 && sudo ifup eth0
+```
+
+#### Verify Network Configuration
+```bash
+# Check IP assignment
+ip addr show eth0
+ifconfig eth0
+
+# Test connectivity between VMs
+ping -c 4 10.1.1.20  # From client to server
+ping -c 4 10.1.1.10  # From server to client
+
+# Check routing table
+ip route show
+route -n
+
+# Verify DNS resolution (if needed)
+nslookup google.com
 ```
 
 ## StrongVPN Build Setup
