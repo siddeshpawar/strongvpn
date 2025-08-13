@@ -320,7 +320,8 @@ void mlkem_polyvec_add(int16_t r[MLKEM_K][MLKEM_N],
 
 // Secure random bytes generation using OQS
 int pq_randombytes(uint8_t *out, size_t outlen) {
-    return OQS_randombytes(out, outlen) == OQS_SUCCESS ? 0 : -1;
+    OQS_randombytes(out, outlen);  // OQS_randombytes returns void in newer versions
+    return 0;  // Assume success - OQS_randombytes will abort on failure
 }
 
 // Constant-time comparison to prevent timing attacks

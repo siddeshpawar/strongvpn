@@ -12,6 +12,9 @@
 #include "../crypto/ml_dsa.h"
 #include "../crypto/ml_kem.h"
 
+// Forward declaration
+struct tunnel_ctx;
+
 // ============================================================================
 // Handshake State Machine
 // ============================================================================
