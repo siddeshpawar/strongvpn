@@ -26,7 +26,7 @@ int tunnel_send(tunnel_ctx_t *tunnel, const uint8_t *data, size_t len) {
     
     // Handle large post-quantum messages (up to 3309 bytes for ML-DSA signatures)
     ssize_t total_sent = 0;
-    while (total_sent < len) {
+    while ((size_t)total_sent < len) {
         ssize_t sent = send(tunnel->socket_fd, data + total_sent, 
                            len - total_sent, MSG_NOSIGNAL);
         if (sent < 0) {
