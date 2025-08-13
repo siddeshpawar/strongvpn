@@ -83,7 +83,12 @@ int pq_process_server_hello(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx,
 int pq_process_key_exchange(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx,
                            const uint8_t *buffer, size_t len);
 
-// Session key management
+// Complete handshake functions (called by main applications)
+int pq_complete_handshake_client(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx);
+int pq_complete_handshake_server(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx);
+
+// Session key derivation and management
+int derive_session_keys(pq_handshake_ctx_t *pq_ctx);
 int pq_get_session_key(const pq_handshake_ctx_t *ctx, uint8_t *key, size_t key_len);
 int pq_clear_session_key(pq_handshake_ctx_t *ctx);
 

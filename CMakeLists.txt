@@ -55,6 +55,8 @@ endif()
 # Source files
 set(STRONGVPN_SOURCES
     src/crypto/pq_core.c
+    src/crypto/ml_dsa.c
+    src/crypto/ml_kem.c
     src/vpn/pq_handshake.c
     src/vpn/pq_auth.c
     src/network/tunnel.c

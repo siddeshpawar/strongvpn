@@ -118,11 +118,10 @@ int pq_process_client_hello(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx,
         return -1;
     }
     
-    uint32_t payload_len = ntohl(msg->length);
     const uint8_t *payload = msg->payload;
     
     // Verify minimum payload size
-    if (payload_len < 32 + ML_DSA_65_PUBKEY_BYTES + ML_KEM_768_PUBKEY_BYTES) {
+    if (len < sizeof(pq_message_t) + 32 + ML_DSA_65_PUBKEY_BYTES + ML_KEM_768_PUBKEY_BYTES) {
         LOG_ERROR("Client Hello payload too small");
         return -1;
     }
@@ -230,7 +229,6 @@ int pq_process_server_hello(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx,
         return -1;
     }
     
-    uint32_t payload_len = ntohl(msg->length);
     const uint8_t *payload = msg->payload;
     
     // Extract server nonce
