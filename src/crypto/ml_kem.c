@@ -54,9 +54,6 @@ int ml_kem_encapsulate(uint8_t *ciphertext, uint8_t *shared_secret,
     OQS_KEM *kem = OQS_KEM_new(OQS_KEM_alg_ml_kem_768);
     if (!kem) return -1;
     
-    size_t ciphertext_len = kem->length_ciphertext;
-    size_t shared_secret_len = kem->length_shared_secret;
-    
     int result = OQS_KEM_encaps(kem, ciphertext, shared_secret, public_key);
     
     OQS_KEM_free(kem);

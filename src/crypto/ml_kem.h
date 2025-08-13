@@ -9,8 +9,12 @@
 #include <stdint.h>
 #include <stddef.h>
 
+// ML-KEM algorithm variants (security levels)
+#define ML_KEM_512  512   // Category I security
+#define ML_KEM_768  768   // Category III security
+#define ML_KEM_1024 1024  // Category V security
+
 // ML-KEM-768 parameters (Category III security)
-#define ML_KEM_768 768
 #define ML_KEM_768_PUBKEY_BYTES     1184
 #define ML_KEM_768_PRIVKEY_BYTES    2400
 #define ML_KEM_768_CIPHERTEXT_BYTES 1088

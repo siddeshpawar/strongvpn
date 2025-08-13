@@ -9,8 +9,12 @@
 #include <stdint.h>
 #include <stddef.h>
 
+// ML-DSA algorithm variants (security levels)
+#define ML_DSA_44  44   // Category I security
+#define ML_DSA_65  65   // Category III security  
+#define ML_DSA_87  87   // Category V security
+
 // ML-DSA-65 parameters (Category III security)
-#define ML_DSA_65 65
 #define ML_DSA_65_PUBKEY_BYTES  1952
 #define ML_DSA_65_PRIVKEY_BYTES 4032
 #define ML_DSA_65_SIGNATURE_BYTES 3309
