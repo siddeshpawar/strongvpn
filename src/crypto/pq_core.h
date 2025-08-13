@@ -14,6 +14,7 @@
 // ============================================================================
 
 #define ML_DSA_Q        8380417    // Prime modulus
+#define ML_DSA_N        256        // Polynomial degree
 #define ML_DSA_D        13         // Dropped bits from t
 #define ML_DSA_TAU      39         // Number of ±1's in c
 #define ML_DSA_BETA     78         // Bound for ||s1|| and ||s2||
