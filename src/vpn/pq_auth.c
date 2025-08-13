@@ -89,8 +89,26 @@ int pq_send_authentication(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx) {
 
 int pq_process_authentication(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx,
                              const uint8_t *data, size_t len) {
-    if (!pq_ctx || !data || pq_ctx->state != PQ_STATE_KEY_EXCHANGE_COMPLETE) {
-        LOG_ERROR("Invalid parameters for authentication processing");
+    // Detailed parameter validation with specific error messages
+    if (!pq_ctx) {
+        LOG_ERROR("Authentication failed: pq_ctx is NULL");
+        return -1;
+    }
+    if (!data) {
+        LOG_ERROR("Authentication failed: data is NULL");
+        return -1;
+    }
+    if (len == 0) {
+        LOG_ERROR("Authentication failed: data length is 0");
+        return -1;
+    }
+    
+    LOG_INFO("Authentication validation: pq_ctx=%p, data=%p, len=%zu, state=%d", 
+             pq_ctx, data, len, pq_ctx->state);
+    
+    if (pq_ctx->state != PQ_STATE_KEY_EXCHANGE_COMPLETE) {
+        LOG_ERROR("Authentication failed: Invalid state %d (expected %d)", 
+                 pq_ctx->state, PQ_STATE_KEY_EXCHANGE_COMPLETE);
         return -1;
     }
     
