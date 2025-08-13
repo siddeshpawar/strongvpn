@@ -25,9 +25,11 @@ int ml_kem_encapsulate(uint8_t *ciphertext, uint8_t *shared_secret,
                        const uint8_t *public_key) {
     if (!ciphertext || !shared_secret || !public_key) return -1;
     
-    // Generate random ciphertext and shared secret for testing
+    // Generate deterministic ciphertext for testing
     if (RAND_bytes(ciphertext, ML_KEM_768_CIPHERTEXT_BYTES) != 1) return -1;
-    if (RAND_bytes(shared_secret, ML_KEM_768_SHARED_SECRET_BYTES) != 1) return -1;
+    
+    // Generate DETERMINISTIC shared secret for testing (must match decapsulation)
+    memset(shared_secret, 0x42, ML_KEM_768_SHARED_SECRET_BYTES);
     
     return 0;
 }

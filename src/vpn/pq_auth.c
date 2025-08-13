@@ -152,6 +152,8 @@ int pq_process_authentication(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx,
         return -1;
     }
     
+    // Mark handshake as fully established
+    pq_ctx->state = PQ_STATE_ESTABLISHED;
     LOG_INFO("Mutual authentication completed - session keys derived");
     return 0;
 }

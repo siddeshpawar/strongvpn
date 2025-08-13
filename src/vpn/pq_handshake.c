@@ -201,14 +201,9 @@ int pq_process_client_hello(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx,
     free(resp_buffer);
     
     if (result > 0) {
-        // Derive session keys after successful key exchange
-        if (derive_session_keys(pq_ctx) != 0) {
-            LOG_ERROR("Failed to derive session keys");
-            return -1;
-        }
-        
-        pq_ctx->state = PQ_STATE_ESTABLISHED;
-        LOG_INFO("Server Hello sent successfully, handshake complete");
+        // Key exchange complete, but authentication still needed
+        pq_ctx->state = PQ_STATE_KEY_EXCHANGE_COMPLETE;
+        LOG_INFO("Client Hello processed successfully, key exchange complete");
         return 0;
     } else {
         LOG_ERROR("Failed to send Server Hello");
@@ -273,8 +268,8 @@ int pq_process_server_hello(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx,
         return -1;
     }
     
-    pq_ctx->state = PQ_STATE_ESTABLISHED;
-    LOG_INFO("Server Hello processed successfully, handshake complete");
+    pq_ctx->state = PQ_STATE_KEY_EXCHANGE_COMPLETE;
+    LOG_INFO("Server Hello processed successfully, key exchange complete");
     return 0;
 }
 
