@@ -1,6 +1,6 @@
 /*
  * ML-DSA (FIPS 204) Interface Header
- * Post-quantum digital signature algorithm
+ * Post-quantum digital signature algorithms
  */
 
 #ifndef ML_DSA_H
