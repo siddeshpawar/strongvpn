@@ -10,11 +10,8 @@
 #include <stddef.h>
 #include "../crypto/ml_dsa.h"
 
-// Forward declarations
-struct tunnel_ctx;
-struct pq_handshake_ctx;
-typedef struct tunnel_ctx tunnel_ctx_t;
-typedef struct pq_handshake_ctx pq_handshake_ctx_t;
+// Include required headers for type definitions
+#include "pq_handshake.h"
 
 // Authentication result codes
 #define PQ_AUTH_SUCCESS     0
@@ -46,8 +43,8 @@ int pq_auth_store_peer_key(const uint8_t *public_key, const uint8_t *peer_id);
 int pq_auth_get_peer_key(uint8_t *public_key, const uint8_t *peer_id);
 int pq_auth_is_peer_trusted(const uint8_t *peer_id);
 
-int pq_auth_handshake_authenticate(struct tunnel_ctx *tunnel, 
-                                  struct pq_handshake_ctx *pq_ctx);
+int pq_auth_handshake_authenticate(tunnel_ctx_t *tunnel, 
+                                  pq_handshake_ctx_t *pq_ctx);
 
 // Complete handshake functions (called by main applications)
 int pq_complete_handshake_client(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx);

@@ -12,8 +12,8 @@
 #include "../crypto/ml_dsa.h"
 #include "../crypto/ml_kem.h"
 
-// Forward declaration - use typedef name for consistency
-typedef struct tunnel_ctx tunnel_ctx_t;
+// Forward declaration - include the actual header
+#include "../network/tunnel.h"
 
 // ============================================================================
 // Handshake State Machine
