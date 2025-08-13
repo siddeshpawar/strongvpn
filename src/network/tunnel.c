@@ -151,10 +151,11 @@ int tunnel_server_accept(tunnel_ctx_t *tunnel) {
         return -1;
     }
     
-    // Store client information
+    // Store client information and connection
     tunnel->peer_addr = client_addr;
-    close(tunnel->socket_fd); // Close listening socket
-    tunnel->socket_fd = client_fd; // Use client connection
+    // Keep listening socket for future connections, use client socket for communication
+    int listening_fd = tunnel->socket_fd;
+    tunnel->socket_fd = client_fd; // Use client connection for handshake
     
     LOG_INFO("Client connected from %s:%u", 
              inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));

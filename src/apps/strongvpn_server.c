@@ -27,12 +27,24 @@ int main(int argc, char *argv[]) {
     uint16_t port = 8443; // Default StrongVPN port
     
     // Parse command line arguments
-    if (argc > 1) {
+    if (argc == 2) {
+        // Single argument: port number
         port = (uint16_t)atoi(argv[1]);
         if (port == 0) {
-            fprintf(stderr, "Usage: %s [port]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [port] or %s [ip] [port]\n", argv[0], argv[0]);
             return -1;
         }
+    } else if (argc == 3) {
+        // Two arguments: IP address and port
+        // For now, ignore IP (server binds to INADDR_ANY anyway)
+        port = (uint16_t)atoi(argv[2]);
+        if (port == 0) {
+            fprintf(stderr, "Usage: %s [port] or %s [ip] [port]\n", argv[0], argv[0]);
+            return -1;
+        }
+    } else if (argc > 3) {
+        fprintf(stderr, "Usage: %s [port] or %s [ip] [port]\n", argv[0], argv[0]);
+        return -1;
     }
     
     // Initialize logging system
