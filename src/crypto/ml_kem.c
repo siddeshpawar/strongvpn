@@ -14,8 +14,8 @@ int ml_kem_keygen(ml_kem_keypair_t *keypair, int variant) {
     if (!keypair) return -1;
     
     // Generate random keys for testing
-    if (RAND_bytes(keypair->public_key, ML_KEM_PUBLIC_KEY_SIZE) != 1) return -1;
-    if (RAND_bytes(keypair->private_key, ML_KEM_PRIVATE_KEY_SIZE) != 1) return -1;
+    if (RAND_bytes(keypair->public_key, ML_KEM_768_PUBKEY_BYTES) != 1) return -1;
+    if (RAND_bytes(keypair->private_key, ML_KEM_768_PRIVKEY_BYTES) != 1) return -1;
     
     return 0;
 }
@@ -26,8 +26,8 @@ int ml_kem_encaps(uint8_t *ciphertext, uint8_t *shared_secret,
     if (!ciphertext || !shared_secret || !public_key) return -1;
     
     // Generate random ciphertext and shared secret for testing
-    if (RAND_bytes(ciphertext, ML_KEM_CIPHERTEXT_SIZE) != 1) return -1;
-    if (RAND_bytes(shared_secret, ML_KEM_SHARED_SECRET_SIZE) != 1) return -1;
+    if (RAND_bytes(ciphertext, ML_KEM_768_CIPHERTEXT_BYTES) != 1) return -1;
+    if (RAND_bytes(shared_secret, ML_KEM_768_SHARED_SECRET_BYTES) != 1) return -1;
     
     return 0;
 }
@@ -39,7 +39,7 @@ int ml_kem_decaps(uint8_t *shared_secret, const uint8_t *ciphertext,
     
     // Generate deterministic shared secret for testing (based on ciphertext)
     // In real testing, this should match the encapsulation result
-    memset(shared_secret, 0x42, ML_KEM_SHARED_SECRET_SIZE); // Dummy shared secret
+    memset(shared_secret, 0x42, ML_KEM_768_SHARED_SECRET_BYTES); // Dummy shared secret
     
     return 0;
 }
@@ -49,6 +49,6 @@ void ml_kem_keypair_free(ml_kem_keypair_t *keypair) {
     if (!keypair) return;
     
     // Secure cleanup using OpenSSL
-    OPENSSL_cleanse(keypair->private_key, sizeof(keypair->private_key));
-    OPENSSL_cleanse(keypair->public_key, sizeof(keypair->public_key));
+    OPENSSL_cleanse(keypair->private_key, ML_KEM_768_PRIVKEY_BYTES);
+    OPENSSL_cleanse(keypair->public_key, ML_KEM_768_PUBKEY_BYTES);
 }
