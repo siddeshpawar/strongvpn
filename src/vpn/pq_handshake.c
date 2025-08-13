@@ -8,12 +8,17 @@
 
 #include "tunnel.h"
 #include "../crypto/ml_dsa.h"
+#include "pq_handshake.h"
+#include "../crypto/pq_core.h"
+#include "../crypto/ml_dsa.h"
 #include "../crypto/ml_kem.h"
 #include "../common/logger.h"
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <openssl/kdf.h>
 #include <openssl/hmac.h>
+#include <string.h>
+#include <stdlib.h>
 
 // ============================================================================
 // Post-Quantum Handshake Protocol Messages
