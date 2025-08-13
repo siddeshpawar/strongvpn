@@ -16,8 +16,16 @@
 // ============================================================================
 
 int pq_send_authentication(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx) {
-    if (!tunnel || !pq_ctx || pq_ctx->state != PQ_STATE_KEY_EXCHANGE_COMPLETE) {
+    if (!tunnel || !pq_ctx) {
         LOG_ERROR("Invalid parameters for authentication");
+        return -1;
+    }
+    
+    // Accept both KEY_EXCHANGE_COMPLETE (client auth) and AUTHENTICATED (server response)
+    if (pq_ctx->state != PQ_STATE_KEY_EXCHANGE_COMPLETE && 
+        pq_ctx->state != PQ_STATE_AUTHENTICATED) {
+        LOG_ERROR("Invalid state %d for sending authentication (expected %d or %d)", 
+                 pq_ctx->state, PQ_STATE_KEY_EXCHANGE_COMPLETE, PQ_STATE_AUTHENTICATED);
         return -1;
     }
     
