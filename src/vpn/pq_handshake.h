@@ -12,8 +12,8 @@
 #include "../crypto/ml_dsa.h"
 #include "../crypto/ml_kem.h"
 
-// Forward declaration
-struct tunnel_ctx;
+// Forward declaration - use typedef name for consistency
+typedef struct tunnel_ctx tunnel_ctx_t;
 
 // ============================================================================
 // Handshake State Machine
@@ -71,23 +71,20 @@ int pq_handshake_init(pq_handshake_ctx_t *ctx, int is_server);
 void pq_handshake_cleanup(pq_handshake_ctx_t *ctx);
 
 // Message sending functions
-int pq_send_client_hello(struct tunnel_ctx *tunnel, pq_handshake_ctx_t *pq_ctx);
-int pq_send_server_hello(struct tunnel_ctx *tunnel, pq_handshake_ctx_t *pq_ctx);
-int pq_send_key_exchange(struct tunnel_ctx *tunnel, pq_handshake_ctx_t *pq_ctx);
+int pq_send_client_hello(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx);
+int pq_send_server_hello(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx);
+int pq_send_key_exchange(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx);
 
 // Message processing functions
-int pq_process_client_hello(struct tunnel_ctx *tunnel, pq_handshake_ctx_t *pq_ctx,
-                           const uint8_t *data, size_t len);
-int pq_process_server_hello(struct tunnel_ctx *tunnel, pq_handshake_ctx_t *pq_ctx,
-                           const uint8_t *data, size_t len);
-int pq_process_key_exchange(struct tunnel_ctx *tunnel, pq_handshake_ctx_t *pq_ctx,
-                           const uint8_t *data, size_t len);
+int pq_process_client_hello(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx,
+                           const uint8_t *buffer, size_t len);
+int pq_process_server_hello(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx,
+                           const uint8_t *buffer, size_t len);
+int pq_process_key_exchange(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx,
+                           const uint8_t *buffer, size_t len);
 
 // Session key management
 int pq_get_session_key(const pq_handshake_ctx_t *ctx, uint8_t *key, size_t key_len);
-int pq_is_handshake_complete(const pq_handshake_ctx_t *ctx);
-
-// Internal helper functions
-static int derive_session_keys(pq_handshake_ctx_t *pq_ctx);
+int pq_clear_session_key(pq_handshake_ctx_t *ctx);
 
 #endif // PQ_HANDSHAKE_H

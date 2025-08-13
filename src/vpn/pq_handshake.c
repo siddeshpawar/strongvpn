@@ -6,7 +6,7 @@
  * integration that makes the mathematical algorithms work in a real VPN.
  */
 
-#include "tunnel.h"
+#include "../network/tunnel.h"
 #include "../crypto/ml_dsa.h"
 #include "pq_handshake.h"
 #include "../crypto/pq_core.h"
