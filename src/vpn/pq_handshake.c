@@ -491,3 +491,46 @@ int pq_get_session_key(const pq_handshake_ctx_t *ctx, uint8_t *key, size_t key_l
 int pq_handshake_is_complete(const pq_handshake_ctx_t *ctx) {
     return ctx && ctx->state == PQ_STATE_ESTABLISHED;
 }
+
+// Derive session keys from shared secrets (called by pq_auth.c)
+int derive_session_keys(pq_handshake_ctx_t *pq_ctx) {
+    if (!pq_ctx || !pq_ctx->hash_ctx) {
+        return -1;
+    }
+    
+    // Use HKDF to derive session key from the handshake transcript
+    uint8_t transcript_hash[32];
+    unsigned int hash_len = 32;
+    
+    // Finalize the transcript hash
+    if (EVP_DigestFinal_ex(pq_ctx->hash_ctx, transcript_hash, &hash_len) != 1) {
+        return -1;
+    }
+    
+    // Derive session key using HKDF with transcript hash as input key material
+    EVP_PKEY_CTX *hkdf_ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
+    if (!hkdf_ctx) {
+        return -1;
+    }
+    
+    if (EVP_PKEY_derive_init(hkdf_ctx) <= 0 ||
+        EVP_PKEY_CTX_set_hkdf_md(hkdf_ctx, EVP_sha256()) <= 0 ||
+        EVP_PKEY_CTX_set1_hkdf_key(hkdf_ctx, transcript_hash, 32) <= 0 ||
+        EVP_PKEY_CTX_set1_hkdf_info(hkdf_ctx, (uint8_t*)"StrongVPN-PQ-Session", 20) <= 0) {
+        EVP_PKEY_CTX_free(hkdf_ctx);
+        return -1;
+    }
+    
+    size_t session_key_len = 32;
+    if (EVP_PKEY_derive(hkdf_ctx, pq_ctx->session_key, &session_key_len) <= 0) {
+        EVP_PKEY_CTX_free(hkdf_ctx);
+        return -1;
+    }
+    
+    EVP_PKEY_CTX_free(hkdf_ctx);
+    
+    // Mark handshake as established
+    pq_ctx->state = PQ_STATE_ESTABLISHED;
+    
+    return 0;
+}
