@@ -69,7 +69,8 @@ int main(int argc, char *argv[]) {
         // Accept client connection
         if (tunnel_server_accept(&g_tunnel) != 0) {
             if (g_running) {
-                LOG_ERROR("Failed to accept client connection");
+                LOG_ERROR("Failed to accept client connection - retrying in 2 seconds");
+                sleep(2); // Prevent log flooding
             }
             continue;
         }
