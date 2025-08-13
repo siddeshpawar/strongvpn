@@ -154,7 +154,6 @@ int tunnel_server_accept(tunnel_ctx_t *tunnel) {
     // Store client information and connection
     tunnel->peer_addr = client_addr;
     // Keep listening socket for future connections, use client socket for communication
-    int listening_fd = tunnel->socket_fd;
     tunnel->socket_fd = client_fd; // Use client connection for handshake
     
     LOG_INFO("Client connected from %s:%u", 

@@ -21,8 +21,8 @@ int ml_kem_keygen(ml_kem_keypair_t *keypair, int variant) {
 }
 
 // Encapsulate shared secret with ML-KEM (stub implementation)
-int ml_kem_encaps(uint8_t *ciphertext, uint8_t *shared_secret,
-                  const uint8_t *public_key) {
+int ml_kem_encapsulate(uint8_t *ciphertext, uint8_t *shared_secret,
+                       const uint8_t *public_key) {
     if (!ciphertext || !shared_secret || !public_key) return -1;
     
     // Generate random ciphertext and shared secret for testing
@@ -33,9 +33,10 @@ int ml_kem_encaps(uint8_t *ciphertext, uint8_t *shared_secret,
 }
 
 // Decapsulate shared secret with ML-KEM (stub implementation)
-int ml_kem_decaps(uint8_t *shared_secret, const uint8_t *ciphertext,
-                  const uint8_t *private_key) {
-    if (!shared_secret || !ciphertext || !private_key) return -1;
+int ml_kem_decapsulate(uint8_t *shared_secret,
+                       const uint8_t *ciphertext,
+                       const ml_kem_keypair_t *keypair) {
+    if (!shared_secret || !ciphertext || !keypair) return -1;
     
     // Generate deterministic shared secret for testing (based on ciphertext)
     // In real testing, this should match the encapsulation result
