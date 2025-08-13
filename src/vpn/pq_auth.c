@@ -114,10 +114,19 @@ int pq_process_authentication(tunnel_ctx_t *tunnel, pq_handshake_ctx_t *pq_ctx,
     LOG_INFO("Authentication validation: pq_ctx=%p, data=%p, len=%zu, state=%d", 
              pq_ctx, data, len, pq_ctx->state);
     
-    if (pq_ctx->state != PQ_STATE_KEY_EXCHANGE_COMPLETE) {
-        LOG_ERROR("Authentication failed: Invalid state %d (expected %d)", 
-                 pq_ctx->state, PQ_STATE_KEY_EXCHANGE_COMPLETE);
-        return -1;
+    if (pq_ctx->is_server) {
+        if (pq_ctx->state != PQ_STATE_KEY_EXCHANGE_COMPLETE) {
+            LOG_ERROR("Authentication failed: Invalid state %d (expected %d)", 
+                     pq_ctx->state, PQ_STATE_KEY_EXCHANGE_COMPLETE);
+            return -1;
+        }
+    } else {
+        if (pq_ctx->state != PQ_STATE_KEY_EXCHANGE_COMPLETE && 
+            pq_ctx->state != PQ_STATE_AUTHENTICATED) {
+            LOG_ERROR("Authentication failed: Invalid state %d (expected %d or %d)", 
+                     pq_ctx->state, PQ_STATE_KEY_EXCHANGE_COMPLETE, PQ_STATE_AUTHENTICATED);
+            return -1;
+        }
     }
     
     const pq_message_t *msg = (const pq_message_t *)data;
