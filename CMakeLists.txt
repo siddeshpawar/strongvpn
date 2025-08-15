@@ -32,11 +32,12 @@ if(USE_LIBOQS)
         
         if(LIBOQS_INCLUDE_DIR AND LIBOQS_LIBRARY)
             set(LIBOQS_FOUND TRUE)
-        set(LIBOQS_INCLUDE_DIRS ${LIBOQS_INCLUDE_DIR})
-        set(LIBOQS_LIBRARIES ${LIBOQS_LIBRARY})
-        message(STATUS "Found liboqs: ${LIBOQS_LIBRARY}")
-    else()
-        message(FATAL_ERROR "liboqs not found. Please install liboqs development package.")
+            set(LIBOQS_INCLUDE_DIRS ${LIBOQS_INCLUDE_DIR})
+            set(LIBOQS_LIBRARIES ${LIBOQS_LIBRARY})
+            message(STATUS "Found liboqs: ${LIBOQS_LIBRARY}")
+        else()
+            message(FATAL_ERROR "liboqs not found. Please install liboqs development package.")
+        endif()
     endif()
     
     # Configure for real cryptography
