@@ -8,6 +8,9 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "pq_core.h"
+#include "ml_kem.h"    // For ml_kem_keypair_t definition
+#include "ml_dsa.h"    // For ml_dsa_keypair_t definition
 
 // Compile-time switch between stub and real crypto
 #ifdef USE_LIBOQS
@@ -27,8 +30,8 @@ int ml_kem_keygen_real(ml_kem_keypair_t *keypair, int variant);
 int ml_kem_encapsulate_real(uint8_t *ciphertext, uint8_t *shared_secret,
                            const uint8_t *public_key);
 int ml_kem_decapsulate_real(uint8_t *shared_secret,
-                           const uint8_t *ciphertext,
-                           const ml_kem_keypair_t *keypair);
+                            const uint8_t *ciphertext,
+                            const ml_kem_keypair_t *keypair);
 #endif
 
 // ============================================================================
@@ -39,8 +42,8 @@ int ml_kem_decapsulate_real(uint8_t *shared_secret,
 // Real liboqs ML-DSA implementation
 int ml_dsa_keygen_real(ml_dsa_keypair_t *keypair, int variant);
 int ml_dsa_sign_real(uint8_t *signature, size_t *sig_len,
-                    const uint8_t *message, size_t msg_len,
-                    const ml_dsa_keypair_t *keypair);
+                     const uint8_t *message, size_t msg_len,
+                     const ml_dsa_keypair_t *keypair);
 int ml_dsa_verify_real(const uint8_t *signature, size_t sig_len,
                       const uint8_t *message, size_t msg_len,
                       const uint8_t *public_key);
