@@ -3,12 +3,18 @@
  * Real NIST-standardized ML-KEM and ML-DSA implementations
  */
 
-#include "pq_liboqs.h"
 #include "ml_kem.h"
 #include "ml_dsa.h"
+#include "pq_core.h"
 #include "../common/logger.h"
 #include <string.h>
 #include <stdlib.h>
+
+#ifdef USE_LIBOQS
+#include <oqs/oqs.h>
+#endif
+
+#include "pq_liboqs.h"
 
 // Global crypto operations structure
 static pq_crypto_ops_t g_crypto_ops;
