@@ -128,7 +128,6 @@ else()
         dl         # Dynamic linking
     )
 endif()
-)
 
 # Compiler flags for liboqs
 if(LIBOQS_CFLAGS_OTHER)
