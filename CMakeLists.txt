@@ -13,31 +13,46 @@ if(OPENSSL_VERSION VERSION_LESS "3.0.0")
     message(FATAL_ERROR "OpenSSL 3.0.0 or higher is required for post-quantum cryptography support")
 endif()
 
+# Option to enable real liboqs cryptography
+option(USE_LIBOQS "Use real liboqs cryptography (production)" OFF)
+
 # Find liboqs with fallback methods
-pkg_check_modules(LIBOQS liboqs)
-if(NOT LIBOQS_FOUND)
-    # Fallback: try to find liboqs manually
-    find_path(LIBOQS_INCLUDE_DIR oqs/oqs.h
-        PATHS /usr/local/include /usr/include
-        PATH_SUFFIXES oqs
-    )
-    find_library(LIBOQS_LIBRARY
-        NAMES oqs liboqs
-        PATHS /usr/local/lib /usr/lib
-    )
-    
-    if(LIBOQS_INCLUDE_DIR AND LIBOQS_LIBRARY)
-        set(LIBOQS_FOUND TRUE)
+if(USE_LIBOQS)
+    pkg_check_modules(LIBOQS liboqs)
+    if(NOT LIBOQS_FOUND)
+        # Fallback: try to find liboqs manually
+        find_path(LIBOQS_INCLUDE_DIR oqs/oqs.h
+            PATHS /usr/local/include /usr/include
+            PATH_SUFFIXES oqs
+        )
+        find_library(LIBOQS_LIBRARY
+            NAMES oqs liboqs
+            PATHS /usr/local/lib /usr/lib
+        )
+        
+        if(LIBOQS_INCLUDE_DIR AND LIBOQS_LIBRARY)
+            set(LIBOQS_FOUND TRUE)
         set(LIBOQS_INCLUDE_DIRS ${LIBOQS_INCLUDE_DIR})
         set(LIBOQS_LIBRARIES ${LIBOQS_LIBRARY})
         message(STATUS "Found liboqs: ${LIBOQS_LIBRARY}")
     else()
         message(FATAL_ERROR "liboqs not found. Please install liboqs development package.")
     endif()
+    
+    # Configure for real cryptography
+    add_definitions(-DUSE_LIBOQS)
+    message(STATUS "Building with REAL post-quantum cryptography (liboqs)")
+    message(STATUS "Security Level: 128-bit quantum resistance")
+else()
+    # Using stubs for testing
+    message(WARNING "Building with STUB cryptography - NOT SECURE!")
+    message(WARNING "For production use: cmake -DUSE_LIBOQS=ON ..")
 endif()
 
 # Include directories
-include_directories(${LIBOQS_INCLUDE_DIRS})
+if(USE_LIBOQS AND LIBOQS_FOUND)
+    include_directories(${LIBOQS_INCLUDE_DIRS})
+endif()
 include_directories(${OPENSSL_INCLUDE_DIR})
 include_directories(src)
 
@@ -57,6 +72,7 @@ set(STRONGVPN_SOURCES
     src/crypto/pq_core.c
     src/crypto/ml_dsa.c
     src/crypto/ml_kem.c
+    src/crypto/pq_liboqs.c
     src/vpn/pq_handshake.c
     src/vpn/pq_auth.c
     src/network/tunnel.c
@@ -75,23 +91,43 @@ add_executable(strongvpn_client
     ${STRONGVPN_SOURCES}
 )
 
-# Link libraries with explicit OpenSSL and liboqs linking
-target_link_libraries(strongvpn_server 
-    ${LIBOQS_LIBRARIES}
-    OpenSSL::SSL 
-    OpenSSL::Crypto 
-    m          # Math library
-    pthread    # Threading support
-    dl         # Dynamic linking
-)
-
-target_link_libraries(strongvpn_client 
-    ${LIBOQS_LIBRARIES}
-    OpenSSL::SSL 
-    OpenSSL::Crypto 
-    m          # Math library
-    pthread    # Threading support
-    dl         # Dynamic linking
+# Link libraries with conditional liboqs linking
+if(USE_LIBOQS AND LIBOQS_FOUND)
+    target_link_libraries(strongvpn_server 
+        ${LIBOQS_LIBRARIES}
+        OpenSSL::SSL 
+        OpenSSL::Crypto 
+        m          # Math library
+        pthread    # Threading support
+        dl         # Dynamic linking
+    )
+    
+    target_link_libraries(strongvpn_client 
+        ${LIBOQS_LIBRARIES}
+        OpenSSL::SSL 
+        OpenSSL::Crypto 
+        m          # Math library
+        pthread    # Threading support
+        dl         # Dynamic linking
+    )
+else()
+    # Stub mode - no liboqs linking
+    target_link_libraries(strongvpn_server 
+        OpenSSL::SSL 
+        OpenSSL::Crypto 
+        m          # Math library
+        pthread    # Threading support
+        dl         # Dynamic linking
+    )
+    
+    target_link_libraries(strongvpn_client 
+        OpenSSL::SSL 
+        OpenSSL::Crypto 
+        m          # Math library
+        pthread    # Threading support
+        dl         # Dynamic linking
+    )
+endif()
 )
 
 # Compiler flags for liboqs
