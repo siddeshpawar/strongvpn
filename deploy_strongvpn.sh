@@ -56,7 +56,7 @@ echo "======================================="
 
 # Update system
 log_info "Updating system packages..."
-apt update && apt upgrade -y
+apt update -y
 
 # Install essential build tools
 log_info "Installing build tools and dependencies..."
