@@ -15,6 +15,10 @@
 #include <time.h>
 #include <fcntl.h>
 
+#ifndef MSG_WAITALL
+#define MSG_WAITALL 0x100
+#endif
+
 // set a socket to non-blocking mode
 static void set_nonblocking(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
@@ -110,6 +114,50 @@ static int tunnel_recv_with_timeout(tunnel_ctx_t *tunnel, uint8_t *buffer, size_
     // Receive payload if present
     if (payload_len > 0) {
         received = read_exact_retry(tunnel->socket_fd, buffer + sizeof(header), payload_len, timeout_ms);
+        if (received != (ssize_t)payload_len) {
+            LOG_ERROR("Failed to receive complete payload: expected %u, got %zd", 
+                     payload_len, received);
+            return -1;
+        }
+    }
+    
+    LOG_DEBUG("Received %zu bytes from tunnel", total_len);
+    return total_len;
+}
+
+int tunnel_recv(tunnel_ctx_t *tunnel, uint8_t *buffer, size_t max_len) {
+    if (!tunnel || !buffer || tunnel->socket_fd < 0) {
+        LOG_ERROR("Invalid tunnel parameters for recv");
+        return -1;
+    }
+    
+    // First, receive message header to determine payload size
+    pq_message_t header;
+    ssize_t received = recv(tunnel->socket_fd, &header, sizeof(header), MSG_WAITALL);
+    if (received != sizeof(header)) {
+        if (received == 0) {
+            LOG_INFO("Connection closed by peer");
+        } else {
+            LOG_ERROR("Failed to receive message header: %s", strerror(errno));
+        }
+        return -1;
+    }
+    
+    // Convert network byte order to host byte order
+    uint32_t payload_len = ntohl(header.length);
+    size_t total_len = sizeof(header) + payload_len;
+    
+    if (total_len > max_len) {
+        LOG_ERROR("Message too large: %zu bytes (max %zu)", total_len, max_len);
+        return -1;
+    }
+    
+    // Copy header to buffer
+    memcpy(buffer, &header, sizeof(header));
+    
+    // Receive payload if present
+    if (payload_len > 0) {
+        received = recv(tunnel->socket_fd, buffer + sizeof(header), payload_len, MSG_WAITALL);
         if (received != (ssize_t)payload_len) {
             LOG_ERROR("Failed to receive complete payload: expected %u, got %zd", 
                      payload_len, received);
