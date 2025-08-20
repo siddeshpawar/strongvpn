@@ -103,7 +103,22 @@ int main(int argc, char *argv[]) {
             
             // Keep connection alive for testing
             LOG_INFO("VPN tunnel ready for data transmission");
-            sleep(30); // Maintain connection for 30 seconds
+
+            // Continuous receive/echo loop to support multiple messages per connection
+            uint8_t app_buf[8192];
+            while (g_running) {
+                int got = tunnel_recv_data(&g_tunnel, app_buf, sizeof(app_buf), 10000);
+                if (got > 0) {
+                    LOG_INFO("Received application data: %d bytes - echoing back", got);
+                    if (tunnel_send_data(&g_tunnel, app_buf, (size_t)got) < 0) {
+                        LOG_ERROR("Failed to echo data back to client");
+                        break;
+                    }
+                } else {
+                    LOG_INFO("Client done or recv timeout/error - closing connection");
+                    break;
+                }
+            }
             
         } else {
             LOG_ERROR("Post-quantum handshake failed");

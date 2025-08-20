@@ -10,6 +10,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
+
+// Graceful shutdown flag and handler
+static volatile int g_running = 1;
+static void signal_handler(int sig) {
+    (void)sig;
+    g_running = 0;
+}
 
 int main(int argc, char *argv[]) {
     const char *server_ip = "10.1.1.20"; // Default EVE-NG server IP
@@ -33,6 +41,10 @@ int main(int argc, char *argv[]) {
     LOG_INFO("Pure post-quantum VPN using ML-DSA-65 + ML-KEM-768");
     LOG_INFO("Target server: %s:%u", server_ip, port);
     
+    // Setup signals for graceful shutdown
+    signal(SIGINT, signal_handler);
+    signal(SIGTERM, signal_handler);
+
     // Initialize tunnel context and connect to server
     tunnel_ctx_t tunnel;
     if (tunnel_client_init(&tunnel, server_ip, port) != 0) {
@@ -71,6 +83,54 @@ int main(int argc, char *argv[]) {
         
         LOG_INFO("VPN tunnel ready for data transmission");
         LOG_INFO("Handshake completed using pure post-quantum cryptography");
+
+        // Continuous send/receive loop: send initial 5000B, then a few varied sizes
+        uint8_t echo_buf[9000];
+
+        for (int iter = 0; iter < 4 && g_running; ++iter) {
+            size_t send_len;
+            if (iter == 0) {
+                send_len = 5000; // large payload to exercise fragmentation
+            } else if (iter == 1) {
+                send_len = 100; // small
+            } else if (iter == 2) {
+                send_len = 2800; // multi-fragment but smaller
+            } else {
+                send_len = 1400; // exactly one fragment size
+            }
+
+            uint8_t *test_buf = (uint8_t*)malloc(send_len);
+            if (!test_buf) {
+                LOG_ERROR("Allocation failed for test buffer");
+                break;
+            }
+            for (size_t i = 0; i < send_len; ++i) test_buf[i] = (uint8_t)((i + iter) & 0xFF);
+
+            if (!g_running) { free(test_buf); break; }
+            if (tunnel_send_data(&tunnel, test_buf, send_len) < 0) {
+                LOG_ERROR("Failed to send test data (len=%zu)", send_len);
+                free(test_buf);
+                break;
+            }
+            LOG_INFO("Sent %zu bytes test payload (iter %d); waiting for echo", send_len, iter);
+
+            if (!g_running) { free(test_buf); break; }
+            int got = tunnel_recv_data(&tunnel, echo_buf, sizeof(echo_buf), 10000);
+            if (got == (int)send_len && memcmp(test_buf, echo_buf, send_len) == 0) {
+                LOG_INFO("Echo verification successful: %d bytes match (iter %d)", got, iter);
+            } else if (got > 0) {
+                LOG_WARN("Echo received %d bytes but content/size mismatch (expected %zu) (iter %d)", got, send_len, iter);
+            } else {
+                if (!g_running) {
+                    LOG_INFO("Shutdown requested - exiting client loop");
+                } else {
+                    LOG_WARN("No echo received within timeout or error (iter %d)", iter);
+                }
+                free(test_buf);
+                break;
+            }
+            free(test_buf);
+        }
         
     } else {
         LOG_ERROR("Post-quantum handshake failed");
