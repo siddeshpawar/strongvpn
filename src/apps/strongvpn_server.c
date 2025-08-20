@@ -124,6 +124,24 @@ int main(int argc, char *argv[]) {
             LOG_ERROR("Post-quantum handshake failed");
         }
         
+        // Per-connection cleanup: close client socket and reset reassembly state
+        if (g_tunnel.socket_fd >= 0) {
+            close(g_tunnel.socket_fd);
+            g_tunnel.socket_fd = -1;
+        }
+        if (g_tunnel.reassembly_buf) {
+            free(g_tunnel.reassembly_buf);
+            g_tunnel.reassembly_buf = NULL;
+        }
+        if (g_tunnel.frag_bitmap) {
+            free(g_tunnel.frag_bitmap);
+            g_tunnel.frag_bitmap = NULL;
+        }
+        g_tunnel.reassembly_size = 0;
+        g_tunnel.reassembly_received = 0;
+        g_tunnel.frag_count = 0;
+        g_tunnel.frags_received = 0;
+        
         // Cleanup handshake context
         pq_handshake_cleanup(&g_pq_ctx);
         LOG_INFO("Client disconnected - ready for next connection");

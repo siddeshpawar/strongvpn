@@ -76,6 +76,51 @@ static void reassembly_reset(tunnel_ctx_t *t) {
     t->frags_received = 0;
 }
 
+// internal variant with timeout for use by data-plane
+static int tunnel_recv_with_timeout(tunnel_ctx_t *tunnel, uint8_t *buffer, size_t max_len, int timeout_ms) {
+    if (!tunnel || !buffer || tunnel->socket_fd < 0) {
+        LOG_ERROR("Invalid tunnel parameters for recv");
+        return -1;
+    }
+    
+    // First, receive message header to determine payload size
+    pq_message_t header;
+    ssize_t received = read_exact_retry(tunnel->socket_fd, (uint8_t*)&header, sizeof(header), timeout_ms);
+    if (received != sizeof(header)) {
+        if (received == 0) {
+            LOG_INFO("Connection closed by peer");
+        } else {
+            LOG_ERROR("Failed to receive message header: %s", strerror(errno));
+        }
+        return -1;
+    }
+    
+    // Convert network byte order to host byte order
+    uint32_t payload_len = ntohl(header.length);
+    size_t total_len = sizeof(header) + payload_len;
+    
+    if (total_len > max_len) {
+        LOG_ERROR("Message too large: %zu bytes (max %zu)", total_len, max_len);
+        return -1;
+    }
+    
+    // Copy header to buffer
+    memcpy(buffer, &header, sizeof(header));
+    
+    // Receive payload if present
+    if (payload_len > 0) {
+        received = read_exact_retry(tunnel->socket_fd, buffer + sizeof(header), payload_len, timeout_ms);
+        if (received != (ssize_t)payload_len) {
+            LOG_ERROR("Failed to receive complete payload: expected %u, got %zd", 
+                     payload_len, received);
+            return -1;
+        }
+    }
+    
+    LOG_DEBUG("Received %zu bytes from tunnel", total_len);
+    return total_len;
+}
+
 // Receive and reassemble a full PQ_MSG_DATA message
 int tunnel_recv_data(tunnel_ctx_t *tunnel, uint8_t *buffer, size_t max_len, int timeout_ms) {
     if (!tunnel || !buffer) {
@@ -252,51 +297,6 @@ int tunnel_send_data(tunnel_ctx_t *tunnel, const uint8_t *data, size_t len) {
         offset += chunk;
     }
     return (int)len;
-}
-
-// internal variant with timeout for use by data-plane
-static int tunnel_recv_with_timeout(tunnel_ctx_t *tunnel, uint8_t *buffer, size_t max_len, int timeout_ms) {
-    if (!tunnel || !buffer || tunnel->socket_fd < 0) {
-        LOG_ERROR("Invalid tunnel parameters for recv");
-        return -1;
-    }
-    
-    // First, receive message header to determine payload size
-    pq_message_t header;
-    ssize_t received = read_exact_retry(tunnel->socket_fd, (uint8_t*)&header, sizeof(header), timeout_ms);
-    if (received != sizeof(header)) {
-        if (received == 0) {
-            LOG_INFO("Connection closed by peer");
-        } else {
-            LOG_ERROR("Failed to receive message header: %s", strerror(errno));
-        }
-        return -1;
-    }
-    
-    // Convert network byte order to host byte order
-    uint32_t payload_len = ntohl(header.length);
-    size_t total_len = sizeof(header) + payload_len;
-    
-    if (total_len > max_len) {
-        LOG_ERROR("Message too large: %zu bytes (max %zu)", total_len, max_len);
-        return -1;
-    }
-    
-    // Copy header to buffer
-    memcpy(buffer, &header, sizeof(header));
-    
-    // Receive payload if present
-    if (payload_len > 0) {
-        received = read_exact_retry(tunnel->socket_fd, buffer + sizeof(header), payload_len, timeout_ms);
-        if (received != (ssize_t)payload_len) {
-            LOG_ERROR("Failed to receive complete payload: expected %u, got %zd", 
-                     payload_len, received);
-            return -1;
-        }
-    }
-    
-    LOG_DEBUG("Received %zu bytes from tunnel", total_len);
-    return total_len;
 }
 
 // ============================================================================
