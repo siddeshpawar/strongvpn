@@ -133,7 +133,7 @@ int tunnel_recv(tunnel_ctx_t *tunnel, uint8_t *buffer, size_t max_len) {
     
     // First, receive message header to determine payload size
     pq_message_t header;
-    ssize_t received = recv(tunnel->socket_fd, &header, sizeof(header), MSG_WAITALL);
+    ssize_t received = read_exact_retry(tunnel->socket_fd, (uint8_t*)&header, sizeof(header), -1);
     if (received != sizeof(header)) {
         if (received == 0) {
             LOG_INFO("Connection closed by peer");
@@ -157,7 +157,7 @@ int tunnel_recv(tunnel_ctx_t *tunnel, uint8_t *buffer, size_t max_len) {
     
     // Receive payload if present
     if (payload_len > 0) {
-        received = recv(tunnel->socket_fd, buffer + sizeof(header), payload_len, MSG_WAITALL);
+        received = read_exact_retry(tunnel->socket_fd, buffer + sizeof(header), payload_len, -1);
         if (received != (ssize_t)payload_len) {
             LOG_ERROR("Failed to receive complete payload: expected %u, got %zd", 
                      payload_len, received);
